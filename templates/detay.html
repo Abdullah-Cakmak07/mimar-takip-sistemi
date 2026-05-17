@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proje Detayı - {{ proje['proje_adi'] }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --sidebar-width: 250px; --bg-dark: #2c3e50; --accent-color: #3498db; }
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { width: var(--sidebar-width); height: 100vh; background-color: var(--bg-dark); position: fixed; left: 0; top: 0; color: white; padding-top: 20px; }
+        .sidebar a { padding: 15px 25px; display: block; color: #bdc3c7; text-decoration: none; transition: 0.3s; }
+        .sidebar a:hover { background-color: #34495e; color: white; }
+        .main-content { margin-left: var(--sidebar-width); padding: 30px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        .asama-item { transition: 0.2s; border-radius: 8px; margin-bottom: 8px; border: 1px solid #eee; }
+        .asama-item:hover { background-color: #f8f9fa; }
+        .gallery-img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
+        .finance-badge { font-size: 0.8rem; padding: 5px 10px; border-radius: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar shadow">
+        <div class="text-center mb-4"><h4><i class="fa-solid fa-compass-drafting"></i> Mimar Takip</h4></div>
+        <nav>
+            <a href="/"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a>
+            <a href="/proje_ekle"><i class="fa-solid fa-folder-plus me-2"></i> Yeni Proje Başlat</a>
+            <a href="/musteriler"><i class="fa-solid fa-users me-2"></i> Müşteri Yönetimi</a>
+            <hr class="mx-3 opacity-25">
+            <a href="/projelerim" class="text-light"><i class="fa-solid fa-arrow-left me-2"></i> Geri Dön</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fa-solid fa-circle-info text-primary me-2"></i>Proje Detayları</h2>
+            <div class="btn-group">
+                <a href="/proje_indir/{{ proje['id'] }}" class="btn btn-success shadow-sm">
+                    <i class="fa-solid fa-file-excel me-2"></i>Teknik Rapor (CSV)
+                </a>
+                <a href="/proje_duzenle/{{ proje['id'] }}" class="btn btn-outline-primary btn-sm">
+                    <i class="fa-solid fa-pen-to-square me-1"></i> Bilgileri Güncelle
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-5">
+                <div class="card mb-4">
+                    <div class="card-header bg-white fw-bold"><i class="fa-solid fa-building me-2"></i>Genel Bilgiler</div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tr><th width="40%">Proje Adı:</th><td>{{ proje['proje_adi'] }}</td></tr>
+                            <tr><th>Proje Tipi:</th><td>{{ proje['proje_tipi'] }}</td></tr>
+                            <tr><th>Müşteri:</th><td>{{ proje['ad_soyad'] }}</td></tr>
+                            <tr><th>Teslim Tarihi:</th><td>{{ proje['teslim_tarihi'] }}</td></tr>
+                        </table>
+                        <hr>
+                        <h6 class="fw-bold text-muted mt-3">📍 Konum & Tapu</h6>
+                        <p class="mb-1 text-secondary small">
+                            {{ proje['il'] }} / {{ proje['ilce'] }} / {{ proje['mahalle'] }}<br>
+                            <strong>Ada:</strong> {{ proje['ada'] }} | <strong>Parsel:</strong> {{ proje['parsel'] }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card mb-4 border-start border-4 border-success">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-bold"><i class="fa-solid fa-money-bill-wave me-2 text-success"></i>Finansal Takip</span>
+                        <button class="btn btn-sm btn-outline-success border-0" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                            <i class="fa-solid fa-plus-circle me-1"></i>Ödeme Ekle
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center mb-3">
+                            <div class="col-6 border-end">
+                                <small class="text-muted d-block">Toplam Bedel</small>
+                                <span class="fw-bold">{{ "{:,.2f}".format(proje['toplam_bedel'] or 0) }} TL</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Kalan Bakiye</small>
+                                <span class="fw-bold text-danger">{{ "{:,.2f}".format(kalan_bakiye) }} TL</span>
+                            </div>
+                        </div>
+                        <div class="progress mb-3" style="height: 10px;">
+                            {% set yuzde_odenen = (toplam_odenen / proje['toplam_bedel'] * 100) if proje['toplam_bedel'] and proje['toplam_bedel'] > 0 else 0 %}
+                            <div class="progress-bar bg-success" style="width: {{ yuzde_odenen }}%"></div>
+                        </div>
+                        <small class="text-muted">Toplam Ödenen: <b>{{ "{:,.2f}".format(toplam_odenen) }} TL</b> (%{{ yuzde_odenen|int }})</small>
+                        
+                        {% if odemeler %}
+                        <div class="mt-3 small" style="max-height: 150px; overflow-y: auto;">
+                            <table class="table table-sm table-hover">
+                                <thead class="table-light"><tr><th>Tarih</th><th>Miktar</th></tr></thead>
+                                <tbody>
+                                    {% for o in odemeler %}
+                                    <tr>
+                                        <td>{{ o['odeme_tarihi'].split(' ')[0] }}</td>
+                                        <td class="fw-bold text-success">+{{ "{:,.2f}".format(o['miktar']) }} TL</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card bg-dark text-white shadow-sm">
+                    <div class="card-body">
+                        <h6 class="fw-bold"><i class="fa-solid fa-address-book me-2"></i>Müşteri İletişim</h6>
+                        <p class="small mb-1"><i class="fa-solid fa-phone me-2"></i>{{ proje['telefon'] }}</p>
+                        <p class="small mb-0"><i class="fa-solid fa-envelope me-2"></i>{{ proje['eposta'] }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-7">
+                <div class="card h-100">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-bold"><i class="fa-solid fa-tasks me-2"></i>Proje Süreç Takibi</span>
+                        <span class="badge bg-primary">Güncel Durum</span>
+                    </div>
+                    <div class="card-body">
+                        <form action="/asama_guncelle" method="POST">
+                            <input type="hidden" name="proje_id" value="{{ proje['id'] }}">
+                            
+                            <div class="list-group list-group-flush mb-3">
+                                {% for ana in asamalar %}
+                                <div class="asama-item mb-3 bg-white overflow-hidden shadow-sm" style="border: 1px solid #e9ecef; border-radius: 8px;">
+                                    
+                                    <div class="d-flex justify-content-between align-items-center p-3 bg-light border-bottom">
+                                        <div class="form-check d-flex align-items-center mb-0">
+                                            <input class="form-check-input parent-check mt-0" type="checkbox" name="asama_{{ ana['id'] }}" 
+                                                id="check_{{ ana['id'] }}" 
+                                                {% if ana['tamamlandi'] == 1 or ana['tamamlandi_hesaplanan'] == 1 %}checked{% endif %}
+                                                onchange="toggleSubSteps(this, 'sub-{{ ana['id'] }}')">
+                                            <label class="form-check-label ms-2 fw-bold {% if ana['tamamlandi'] == 1 or ana['tamamlandi_hesaplanan'] == 1 %}text-decoration-line-through text-muted{% endif %}" 
+                                                for="check_{{ ana['id'] }}" id="label_{{ ana['id'] }}">
+                                                {{ ana['asama_adi'] }}
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge rounded-pill {% if ana['tamamlandi'] == 1 or ana['tamamlandi_hesaplanan'] == 1 %}bg-success text-white{% else %}bg-warning text-dark{% endif %} finance-badge me-2" id="badge_{{ ana['id'] }}">
+                                                {{ 'Tamamlandı' if ana['tamamlandi'] == 1 or ana['tamamlandi_hesaplanan'] == 1 else 'Bekliyor' }}
+                                            </span>
+                                            
+                                            {% if ana['alt_asamalar'] %}
+                                            <button class="btn btn-sm btn-outline-secondary border-0" type="button" data-bs-toggle="collapse" data-bs-target="#sub-{{ ana['id'] }}" aria-expanded="false">
+                                                <i class="fa-solid fa-chevron-down"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    {% if ana['alt_asamalar'] %}
+                                    <div id="sub-{{ ana['id'] }}" class="collapse">
+                                        {% for alt in ana['alt_asamalar'] %}
+                                        <div class="d-flex justify-content-between align-items-center p-2 ps-5 border-bottom" style="background-color: #fdfdfd;">
+                                            <div class="form-check">
+                                                <input class="form-check-input child-check" type="checkbox" name="asama_{{ alt['id'] }}" 
+                                                    id="check_{{ alt['id'] }}" 
+                                                    {% if alt['tamamlandi'] == 1 %}checked{% endif %}
+                                                    onchange="checkParent(this, 'sub-{{ ana['id'] }}', 'check_{{ ana['id'] }}')">
+                                                <label class="form-check-label ms-2 small {% if alt['tamamlandi'] == 1 %}text-decoration-line-through text-muted{% endif %}" 
+                                                    for="check_{{ alt['id'] }}" id="label_{{ alt['id'] }}">
+                                                    <i class="fa-solid fa-turn-up fa-rotate-90 me-2 text-muted opacity-50"></i> {{ alt['asama_adi'] }}
+                                                </label>
+                                            </div>
+                                            <span class="badge rounded-pill {% if alt['tamamlandi'] == 1 %}bg-success text-white{% else %}bg-warning text-dark{% endif %} finance-badge" id="badge_{{ alt['id'] }}">
+                                                {{ 'Tamamlandı' if alt['tamamlandi'] == 1 else 'Bekliyor' }}
+                                            </span>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+
+                                <div class="asama-item mb-3 bg-white overflow-hidden shadow-sm" style="border: 1px solid #e9ecef; border-radius: 8px; border-left: 4px solid {% if odeme_tamamlandi == 1 %}#198754{% else %}#dc3545{% endif %};">
+                                    <div class="d-flex justify-content-between align-items-center p-3 bg-light">
+                                        <div class="form-check d-flex align-items-center mb-0">
+                                            <input class="form-check-input mt-0" type="checkbox" disabled {% if odeme_tamamlandi == 1 %}checked{% endif %}>
+                                            <label class="form-check-label ms-2 fw-bold {% if odeme_tamamlandi == 1 %}text-success text-decoration-line-through{% else %}text-danger{% endif %}">
+                                                <i></i> Proje Tutarı Tahsilatı 
+                                            </label>
+                                        </div>
+                                        <span class="badge rounded-pill {% if odeme_tamamlandi == 1 %}bg-success{% else %}bg-danger{% endif %} text-white finance-badge">
+                                            {{ 'Tamamlandı' if odeme_tamamlandi == 1 else 'Ödeme Bekliyor' }}
+                                        </span>
+                                    </div>
+                                </div>
+                                </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100 py-3 shadow-sm fw-bold">
+                                <i class="fa-solid fa-save me-2"></i>Aşamaları Güncelle ve Kaydet
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4 shadow-sm border-0">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+                <h5 class="mb-0 small fw-bold"><i class="fa-solid fa-folder-open me-2"></i>Proje Dosya ve Fotoğraf Arşivi</h5>
+                <form action="{{ url_for('dosya_yukle', proje_id=proje['id']) }}" method="POST" enctype="multipart/form-data" class="d-flex align-items-center">
+                    <input type="file" name="dosya" class="form-control form-control-sm me-2" style="max-width: 200px;" required>
+                    <button type="submit" class="btn btn-sm btn-primary px-3">
+                        <i class="fa-solid fa-upload me-1"></i> Yükle
+                    </button>
+                </form>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 border-end">
+                        <h6 class="fw-bold mb-3 text-primary small"><i class="fa-solid fa-camera me-2"></i>Görseller (Şantiye & Tasarım)</h6>
+                        <div class="row g-2">
+                            {% for d in dosyalar if d.dosya_tipi == 'resim' %}
+                            <div class="col-4">
+                                <a href="/static/uploads/projeler/{{ d.dosya_yolu }}" target="_blank">
+                                    <img src="/static/uploads/projeler/{{ d.dosya_yolu }}" class="gallery-img shadow-sm" title="{{ d.dosya_adi }}">
+                                </a>
+                            </div>
+                            {% else %}
+                            <div class="col-12 text-muted small py-3">Henüz görsel yüklenmemiş.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold mb-3 text-danger small"><i class="fa-solid fa-file-pdf me-2"></i>Teknik Dokümanlar & Belgeler</h6>
+                        <div class="list-group list-group-flush">
+                            {% for d in dosyalar if d.dosya_tipi == 'dokuman' %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-2">
+                                <a href="/static/uploads/projeler/{{ d.dosya_yolu }}" target="_blank" class="text-decoration-none text-dark small fw-bold">
+                                    <i class="fa-solid fa-file-lines me-2 text-muted"></i>{{ d.dosya_adi }}
+                                </a>
+                                <span class="badge bg-light text-muted fw-normal" style="font-size: 0.7rem;">{{ d.yukleme_tarihi.split(' ')[0] }}</span>
+                            </div>
+                            {% else %}
+                            <div class="col-12 text-muted small py-3">Henüz teknik doküman eklenmemiş.</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <form action="/odeme_ekle/{{ proje['id'] }}" method="POST">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">Yeni Ödeme Kaydı</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Ödeme Miktarı (TL)</label>
+                            <input type="number" step="0.01" name="miktar" class="form-control" placeholder="0.00" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Açıklama / Not</label>
+                            <textarea name="aciklama" class="form-control" rows="2" placeholder="Örn: Hak ediş 1, Nakit vb."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-toggle="modal">Kapat</button>
+                        <button type="submit" class="btn btn-success px-4">Ödemeyi Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function toggleSubSteps(parentCheckbox, subContainerId) {
+            const container = document.getElementById(subContainerId);
+            if (!container) return;
+            const childChecks = container.querySelectorAll('.child-check');
+            childChecks.forEach(chk => {
+                chk.checked = parentCheckbox.checked;
+            });
+        }
+
+        // PARAMETRELER DÜZELTİLDİ: childCheckbox, subContainerId, parentId
+        function checkParent(childCheckbox, subContainerId, parentId) {
+            const container = document.getElementById(subContainerId);
+            const parentCheckbox = document.getElementById(parentId);
+            if (!container || !parentCheckbox) return;
+            
+            const childChecks = Array.from(container.querySelectorAll('.child-check'));
+            if (childChecks.length > 0) {
+                const allChecked = childChecks.every(chk => chk.checked);
+                parentCheckbox.checked = allChecked;
+            }
+        }
+    </script>
+</body>
+</html>

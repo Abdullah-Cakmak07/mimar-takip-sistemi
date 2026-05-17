@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projelerim - Mimar Takip</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --sidebar-width: 250px; --bg-dark: #2c3e50; --accent-color: #3498db; }
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { width: var(--sidebar-width); height: 100vh; background-color: var(--bg-dark); position: fixed; left: 0; top: 0; color: white; padding-top: 20px; z-index: 1000; }
+        .sidebar a { padding: 12px 25px; display: block; color: #bdc3c7; text-decoration: none; transition: 0.3s; font-size: 0.95rem; }
+        .sidebar a:hover, .sidebar .active { background-color: #34495e; color: white; border-left: 4px solid var(--accent-color); }
+        .main-content { margin-left: var(--sidebar-width); padding: 30px; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .progress { border-radius: 10px; height: 8px; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar shadow">
+        <div class="text-center mb-4">
+            <h4><i class="fa-solid fa-compass-drafting"></i> Mimar Takip</h4>
+            <small class="badge bg-primary">{{ session['user_role']|upper }}</small>
+        </div>
+        <nav>
+            <a href="/"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a>
+            <a href="/projelerim" class="active"><i class="fa-solid fa-diagram-project me-2"></i> Projelerim</a>
+            <a href="/musteriler"><i class="fa-solid fa-address-book me-2"></i> Müşteri Yönetimi</a>
+            <a href="/proje_ekle"><i class="fa-solid fa-folder-plus me-2"></i> Yeni Proje Başlat</a>
+            <hr class="mx-3 opacity-25">
+            <a href="/logout" class="text-danger"><i class="fa-solid fa-right-from-bracket me-2"></i> Çıkış Yap</a>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <h3 class="fw-bold text-dark mb-4"><i class="fa-solid fa-diagram-project text-primary me-2"></i>Tüm Projeleriniz</h3>
+        <!-- Filtreleme Paneli -->
+<div class="card p-3 mb-4 shadow-sm border-0">
+    <form action="/projelerim" method="GET" class="row g-3 align-items-end">
+        <div class="col-md-5">
+            <label class="form-label small fw-bold">Proje veya Müşteri Ara</label>
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                <input type="text" name="search" class="form-control border-start-0" placeholder="İsim yazın..." value="{{ search_query }}">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small fw-bold">Şehir Filtresi</label>
+            <select name="city" class="form-select">
+                <option value="">Tüm Şehirler</option>
+                {% for il in iller_listesi %}
+                <option value="{{ il }}" {% if city_filter == il %}selected{% endif %}>{{ il }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-grow-1">Filtrele</button>
+            {% if search_query or city_filter %}
+            <a href="/projelerim" class="btn btn-outline-secondary"><i class="fa-solid fa-xmark"></i></a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+        <!-- DEVAM EDEN PROJELER[cite: 32] -->
+        <h5 class="fw-bold mb-3"><i class="fa-solid fa-spinner text-info me-2"></i>Devam Eden Süreçler</h5>
+        <div class="row mb-5">
+            {% for proje in devam_edenler %}
+            <div class="col-md-4 mb-4">
+                <div class="card p-3 border-start border-info border-4 h-100 shadow-sm">
+                    <h6 class="fw-bold text-primary">{{ proje['proje_adi'] }}</h6>
+                    <small class="text-muted d-block mb-3"><i class="fa-solid fa-user me-1"></i> {{ proje['ad_soyad'] }}</small>
+                    <div class="mt-auto">
+                        <div class="d-flex justify-content-between mb-1 small">
+                            <span class="text-muted">İlerleme</span>
+                            <b class="text-info">%{{ proje['yuzde'] }}</b>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-info" style="width: {{ proje['yuzde'] }}%"></div>
+                        </div>
+                        
+                        <!-- PROJE SİL ENTEGRESİ[cite: 32] -->
+                        <div class="mt-3 d-flex gap-2">
+                            <a href="/proje_sil/{{ proje['id'] }}" class="btn btn-outline-danger btn-sm flex-grow-1 rounded-pill" onclick="return confirm('Bu projeyi silmek istediğinize emin misiniz?')">
+                                <i class="fa-solid fa-trash me-1"></i> Sil
+                            </a>
+                            <a href="/proje_detay/{{ proje['id'] }}" class="btn btn-primary btn-sm flex-grow-1 rounded-pill">Süreci Yönet</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12"><p class="text-muted">Devam eden projeniz bulunmuyor.</p></div>
+            {% endfor %}
+        </div>
+
+        <!-- TAMAMLANAN PROJELER[cite: 32] -->
+        <h5 class="fw-bold mb-3"><i class="fa-solid fa-circle-check text-success me-2"></i>Tamamlananlar</h5>
+        <div class="row">
+            {% for proje in tamamlananlar %}
+            <div class="col-md-4 mb-4">
+                <div class="card p-3 border-start border-success border-4 h-100 opacity-75 shadow-sm">
+                    <h6 class="fw-bold text-success">{{ proje['proje_adi'] }}</h6>
+                    <small class="text-muted d-block mb-3">{{ proje['ad_soyad'] }}</small>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" style="width: 100%"></div>
+                    </div>
+                    
+                    <!-- PROJE SİL ENTEGRESİ[cite: 32] -->
+                    <div class="mt-3 d-flex gap-2">
+                        <a href="/proje_sil/{{ proje['id'] }}" class="btn btn-outline-danger btn-sm flex-grow-1 rounded-pill" onclick="return confirm('Bu projeyi silmek istediğinize emin misiniz?')">
+                            <i class="fa-solid fa-trash me-1"></i> Sil
+                        </a>
+                        <a href="/proje_detay/{{ proje['id'] }}" class="btn btn-outline-success btn-sm flex-grow-1 rounded-pill">Detaylar</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</body>
+</html> 

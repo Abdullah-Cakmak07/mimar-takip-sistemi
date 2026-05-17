@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proje Düzenle - {{ proje['proje_adi'] }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --sidebar-width: 250px; --bg-dark: #2c3e50; --accent-color: #3498db; }
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { width: var(--sidebar-width); height: 100vh; background-color: var(--bg-dark); position: fixed; left: 0; top: 0; color: white; padding-top: 20px; z-index: 1000; }
+        .sidebar a { padding: 15px 25px; display: block; color: #bdc3c7; text-decoration: none; transition: 0.3s; }
+        .sidebar a:hover { background-color: #34495e; color: white; }
+        .main-content { margin-left: var(--sidebar-width); padding: 30px; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="text-center mb-4">
+            <h4 class="fw-bold text-white">🏛️ Mimar Takip</h4>
+            <small class="text-muted">Proje Yönetim Paneli</small>
+        </div>
+        <a href="{{ url_for('index') }}"><i class="fa-solid fa-gauge me-2"></i> Dashboard</a>
+        <a href="{{ url_for('projelerim') }}"><i class="fa-solid fa-建築 me-2"></i> Projelerim</a>
+        <a href="{{ url_for('musteriler') }}"><i class="fa-solid fa-users me-2"></i> Müşteriler</a>
+        <a href="{{ url_for('ayarlar') }}"><i class="fa-solid fa-gear me-2"></i> Ayarlar</a>
+        <hr class="mx-3 opacity-25">
+        <a href="{{ url_for('logout') }}" class="text-danger"><i class="fa-solid fa-right-from-bracket me-2"></i> Çıkış Yap</a>
+    </div>
+
+    <div class="main-content">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('projelerim') }}">Projelerim</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('proje_detay', id=proje['id']) }}">{{ proje['proje_adi'] }}</a></li>
+                <li class="breadcrumb-item active">Bilgileri Güncelle</li>
+            </ol>
+        </nav>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h5 class="mb-0"><i class="fa-solid fa-pen-to-square me-2"></i> Proje Bilgilerini Güncelle</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form action="{{ url_for('proje_duzenle', id=proje['id']) }}" method="POST">
+                            
+                            <div class="row g-3">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label fw-bold">Proje Adı</label>
+                                    <input type="text" name="proje_adi" class="form-control" value="{{ proje['proje_adi'] }}" required>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small">Proje Tipi</label>
+                                <select name="proje_tipi" class="form-select" required>
+                                    <option value="">Tip Seçiniz...</option>
+                                    <option value="Villa / Müstakil Ev">Villa / Müstakil Ev</option>
+                                    <option value="Apartman / Toplu Konut">Apartman / Toplu Konut</option>
+                                    <option value="Ofis / İş Merkezi">Ofis / İş Merkezi</option>
+                                    <option value="Restorasyon">Restorasyon</option>
+                                    <option value="İç Mimari Tasarım">İç Mimari Tasarım</option>
+                                    <option value="Diğer">Diğer</option>
+                                </select>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Toplam Bedel (TL)</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.01" name="toplam_bedel" class="form-control" value="{{ proje['toplam_bedel'] }}" required>
+                                        <span class="input-group-text">₺</span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">İl</label>
+                                    <select name="il" id="il-select" class="form-select" required>
+                                        <option value="{{ proje['il'] }}">{{ proje['il'] }} (Mevcut)</option>
+                                        </select>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">İlçe</label>
+                                    <select name="ilce" id="ilce-select" class="form-select" required>
+                                        <option value="{{ proje['ilce'] }}">{{ proje['ilce'] }}</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Ada</label>
+                                    <input type="number" name="ada" class="form-control" placeholder="Ada No giriniz (Örn: 125)" min="0" required>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Parsel</label>
+                                    <input type="number" name="parsel" class="form-control" placeholder="Parsel No giriniz (Örn: 14)" min="0" required>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 d-flex gap-2">
+                                <button type="submit" class="btn btn-success flex-grow-1 py-2 fw-bold">
+                                    <i class="fa-solid fa-check me-2"></i> Değişiklikleri Kaydet
+                                </button>
+                                <a href="{{ url_for('proje_detay', id=proje['id']) }}" class="btn btn-light py-2">Vazgeç</a>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ilSelect = document.getElementById('il-select');
+        const ilceSelect = document.getElementById('ilce-select');
+
+        // Sayfa açıldığında illeri yükle
+        fetch('/api/iller') // app.py'da bu rotanın olduğunu varsayıyoruz (iller.json'ı döner)
+            .then(response => response.json())
+            .then(iller => {
+                Object.keys(iller).sort().forEach(il => {
+                    if(il !== "{{ proje['il'] }}") { // Mevcut ili tekrar ekleme
+                        let option = document.createElement('option');
+                        option.value = il;
+                        option.textContent = il;
+                        ilSelect.appendChild(option);
+                    }
+                });
+            });
+
+        ilSelect.addEventListener('change', function() {
+            const secilenIl = this.value;
+            ilceSelect.innerHTML = '<option value="">İlçe Seçin...</option>';
+            
+            if (secilenIl) {
+                fetch('/api/ilceler/' + secilenIl)
+                    .then(response => response.json())
+                    .then(ilceler => {
+                        ilceler.sort().forEach(ilce => {
+                            let option = document.createElement('option');
+                            option.value = ilce;
+                            option.textContent = ilce;
+                            ilceSelect.appendChild(option);
+                        });
+                    });
+            }
+        });
+    </script>
+</body>
+</html>

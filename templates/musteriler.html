@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Müşteri Yönetimi - Mimar Takip</title>
+    <!-- Bootstrap 5 ve FontAwesome İkon Seti -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --sidebar-width: 260px; --bg-dark: #2c3e50; --accent-color: #3498db; }
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
+        
+        /* Sidebar Tasarımı */
+        .sidebar { width: var(--sidebar-width); height: 100vh; background-color: var(--bg-dark); position: fixed; left: 0; top: 0; color: white; padding-top: 20px; z-index: 1000; }
+        .sidebar a { padding: 12px 25px; display: block; color: #bdc3c7; text-decoration: none; transition: 0.3s; font-size: 0.95rem; }
+        .sidebar a:hover { background-color: #34495e; color: white; border-left: 4px solid var(--accent-color); }
+        .sidebar .active { background-color: #34495e; color: white; border-left: 4px solid var(--accent-color); }
+        
+        /* İçerik Alanı */
+        .main-content { margin-left: var(--sidebar-width); padding: 40px; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .btn-primary { background-color: var(--accent-color); border: none; border-radius: 8px; padding: 10px; }
+        .table thead { background-color: #f8f9fa; }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Menüsü -->
+    <div class="sidebar shadow">
+        <div class="text-center mb-4">
+            <h4><i class="fa-solid fa-compass-drafting"></i> Mimar Takip</h4>
+            <small class="badge bg-primary">{{ session['user_role']|upper }}</small>
+        </div>
+        <nav>
+            <a href="/"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a>
+            <a href="/musteriler" class="active"><i class="fa-solid fa-address-book me-2"></i> Müşteri Yönetimi</a>
+            <a href="/proje_ekle"><i class="fa-solid fa-folder-plus me-2"></i> Yeni Proje Başlat</a>
+            <hr class="mx-3 opacity-25">
+            <a href="/logout" class="text-danger"><i class="fa-solid fa-right-from-bracket me-2"></i> Çıkış Yap</a>
+            <a href="/ayarlar" class="{{ 'active' if request.path == '/ayarlar' }}">
+    <i class="fa-solid fa-gears me-2"></i> Ayarlar
+</a>
+        </nav>
+    </div>
+
+    <!-- Ana İçerik Alanı -->
+    <div class="main-content">
+        
+        <!-- Hata ve Başarı Mesajları -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm mb-4" role="alert">
+                <i class="fa-solid fa-circle-info me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <!-- Müşteri Ekleme Kartı -->
+            <div class="col-md-4">
+                <div class="card p-4 shadow-sm">
+                    <h5 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-user-plus text-primary me-2"></i>Müşteri Kaydı</h5>
+                    <form action="/musteri_ekle" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Ad Soyad</label>
+                            <input type="text" name="ad_soyad" class="form-control" placeholder="Müşteri adını girin" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">T.C. Kimlik No</label>
+                            <input type="text" name="tc_no" class="form-control" 
+                                   maxlength="11" minlength="11" pattern="\d{11}" 
+                                   title="Lütfen 11 haneli rakam giriniz" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Telefon</label>
+                            <input type="text" name="telefon" class="form-control" pattern="^05\d{9}$" maxlength="11" placeholder="05XXXXXXXXX" required>
+                            <div class="form-text xsmall">Örn: 05321234567</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">E-posta</label>
+                            <input type="email" name="eposta" class="form-control" placeholder="ornek@posta.com">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm">
+                            <i class="fa-solid fa-save me-2"></i>Müşteriyi Kaydet
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Müşteri Listesi Kartı -->
+            <div class="col-md-8">
+                <div class="card p-4 shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold text-dark mb-0">Müşteri Portföyü</h5>
+                        
+                        <!-- Arama Çubuğu Formu -->
+                        <form action="/musteriler" method="GET" class="d-flex" style="max-width: 300px;">
+                            <div class="input-group input-group-sm">
+                                <input type="text" name="search" class="form-control" placeholder="İsim veya TC ara..." value="{{ search_query if search_query }}">
+                                <button class="btn btn-outline-primary" type="submit">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </button>
+                                {% if search_query %}
+                                <a href="/musteriler" class="btn btn-outline-secondary">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th class="border-0">Müşteri / TC</th>
+                                    <th class="border-0">İletişim</th>
+                                    <th class="border-0 text-center">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for m in musteriler %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold text-primary">{{ m['ad_soyad'] }}</div>
+                                        <small class="text-muted">TC: {{ m['tc_no'] if m['tc_no'] else '-' }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="small"><i class="fa-solid fa-phone me-2 text-muted"></i>{{ m['telefon'] }}</div>
+                                        <div class="small text-muted"><i class="fa-solid fa-envelope me-2"></i>{{ m['eposta'] if m['eposta'] else '-' }}</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{{ url_for('musteri_duzenle', id=m['id']) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 me-1">
+                                            <i class="fa-solid fa-pen me-1"></i> Düzenle
+                                        </a>
+                                        <a href="/musteri_sil/{{ m['id'] }}" 
+                                        class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                        onclick="return confirm('Silmek istediğinize emin misiniz?')">
+                                            <i class="fa-solid fa-trash me-1"></i> Sil
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Kayıt Sayısı Bilgisi -->
+                    <div class="text-end mt-2">
+                        <span class="badge bg-light text-dark border small">Toplam {{ musteriler|length }} Kayıt</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

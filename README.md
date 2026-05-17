@@ -18,10 +18,8 @@ Projenin backend mimarisi ve iş mantığı tamamen nesne yönelimli programlama
     * Sisteme yüklenen tüm proje dosyaları ve profil resimleri, dosya adı çakışmalarını ve siber güvenlik açıklarını (Insecure File Upload) önlemek amacıyla `uuid.uuid4` ile izole edilerek ve uzantı doğrulamalarından geçirilerek sunucuya kaydedilir.
 * **Teknik Rapor İhracatı (CSV Export):** Proje ilerleme durumları Excel ve kurumsal sistemlerle tam uyumlu, noktalı virgül (;) ayraçlı CSV formatında dışa aktarılabilir. Türkçe karakterlerin Excel'de bozulmaması için çıktıya UTF-8 BOM (`\ufeff`) entegre edilmiştir.
 
-## 🤖 Geliştirme Süreci ve AI Destekli Çalışma Modeli
-
-Bu proje, günümüz yazılım endüstrisinde kabul gören **AI-Driven Geliştirme (Yapay Zeka Destekli Kodlama)** hibrit modeliyle hayata geçirilmiştir:
-* Sistem mimarisi, ilişkisel veritabanı tablolarının tasarımı, veri doğrulama algoritmaları (T.C. Kimlik doğrulaması dahil), OOP sınıf kurgusu ve backend veri akış süreçleri tamamen tarafımdan tasarlanıp kodlanmıştır.
+## 🤖 Geliştirme Süreci 
+* Sistem mimarisi, ilişkisel veritabanı tablolarının tasarımı, veri doğrulama algoritmaları (T.C. Kimlik doğrulaması dahil), OOP sınıf kurgusu ve backend veri akış süreçleri tarafımdan kodlanmıştır.
 * Kullanıcı deneyimi (UX) odaklı frontend tasarımları (Bootstrap 5, Jinja2 şablon motoru mimarisi) ve asenkron veri çekme süreçlerinde yapay zeka araçları efektif birer asistan olarak kullanılarak operasyonel süreç hızlandırılmıştır.
 
 ## 🛠️ Kullanılan Teknolojiler ve Kütüphaneler
@@ -42,9 +40,3 @@ Bu proje, günümüz yazılım endüstrisinde kabul gören **AI-Driven Geliştir
 * `templates/`: Jinja2 mimarisiyle backend verilerini dinamik işleyen tüm arayüz bileşenleri (`index.html`, `detay.html`, `musteriler.html`, `ayarlar.html` vb.).
 * `static/`: Profil resimleri, yüklenen dokümanlar ve dinamik üretilen analiz grafiklerinin tutulduğu izole depolama alanı.
 
-## ⚙️ Kurulum ve Çalıştırma
-
-1. Projeyi bilgisayarınıza klonlayın veya indirin.
-2. Gerekli kütüphaneleri yükleyin:
-   ```bash
-   pip install flask pandas matplotlib werkzeug

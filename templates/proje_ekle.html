@@ -1,140 +1,117 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yeni Proje Başlat - Mimar Takip</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root { --sidebar-width: 250px; --bg-dark: #2c3e50; --accent-color: #3498db; }
-        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
-        .sidebar { width: var(--sidebar-width); height: 100vh; background-color: var(--bg-dark); position: fixed; left: 0; top: 0; color: white; padding-top: 20px; z-index: 1000; }
-        .sidebar a { padding: 15px 25px; display: block; color: #bdc3c7; text-decoration: none; transition: 0.3s; }
-        .sidebar a:hover { background-color: #34495e; color: white; }
-        .main-content { margin-left: var(--sidebar-width); padding: 30px; }
-        .card { border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .section-title { font-size: 0.9rem; text-uppercase : uppercase; letter-spacing: 1px; color: #7f8c8d; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 15px; }
-    </style>
-</head>
-<body>
+{# base.html merkezi şablon dosyasını miras alıyoruz #}
+{% extends 'base.html' %}
 
-    <div class="sidebar shadow">
-        <div class="text-center mb-4"><h4><i class="fa-solid fa-compass-drafting"></i> Mimar Takip</h4></div>
-        <nav>
-            <a href="/"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a>
-            <a href="/proje_ekle" style="background-color: #34495e; color: white; border-left: 4px solid var(--accent-color);"><i class="fa-solid fa-folder-plus me-2"></i> Yeni Proje Başlat</a>
-            <a href="/musteriler"><i class="fa-solid fa-users me-2"></i> Müşteri Yönetimi</a>
-            <hr class="mx-3 opacity-25">
-            <a href="/logout" class="text-danger"><i class="fa-solid fa-right-from-bracket me-2"></i> Çıkış Yap</a>
-        </nav>
+{# Tarayıcı sekmesindeki sayfa başlığını belirliyoruz #}
+{% block title %}Yeni Proje Başlat - Mimar Takip{% endblock %}
+
+{# Ana içerik alanının başladığı şablon bloğu #}
+{% block content %}
+<div class="container-fluid p-0">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-dark mb-0">
+            <i class="fa-solid fa-folder-plus text-success me-2"></i>Yeni Proje Başlat
+        </h3>
     </div>
 
-    <div class="main-content">
-        <div class="container">
-            <div class="card">
-                <div class="card-header bg-primary text-white py-3">
-                    <h5 class="mb-0"><i class="fa-solid fa-file-signature me-2"></i>Yeni Mimari Proje Kaydı</h5>
-                </div>
-                <div class="card-body p-4">
-                    <form action="/proje_ekle" method="POST">
-                        
-                        <!-- 1. BÖLÜM: TEMEL BİLGİLER -->
-                        <div class="section-title fw-bold"><i class="fa-solid fa-circle-info me-2"></i>Temel Proje Bilgileri</div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small">Müşteri Seçin</label>
-                                <select name="musteri_id" class="form-select" required>
-                                    <option value="">Seçiniz...</option>
-                                    {% for musteri in musteriler %}
-                                    <option value="{{ musteri['id'] }}">{{ musteri['ad_soyad'] }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small">Proje Adı</label>
-                                <input type="text" name="proje_adi" class="form-control" placeholder="Örn: Modern Villa Projesi" required>
-                            </div>
-                        </div>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 p-4 bg-white">
+                
+                <form action="/proje_ekle" method="POST">
+                    
+                    <h5 class="fw-bold text-secondary mb-3 small text-uppercase border-bottom pb-2">
+                        <i class="fa-solid fa-file-signature me-2"></i>Genel Sözleşme Bilgileri
+                    </h5>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small">Proje Tipi</label>
-                                <select name="proje_tipi" class="form-select" required>
-                                    <option value="">Tip Seçiniz...</option>
-                                    <option value="Villa / Müstakil Ev">Villa / Müstakil Ev</option>
-                                    <option value="Apartman / Toplu Konut">Apartman / Toplu Konut</option>
-                                    <option value="Ofis / İş Merkezi">Ofis / İş Merkezi</option>
-                                    <option value="Restorasyon">Restorasyon</option>
-                                    <option value="İç Mimari Tasarım">İç Mimari Tasarım</option>
-                                    <option value="Diğer">Diğer</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small">Toplam Proje Bedeli (TL)</label>
-                                <div class="input-group">
-                                    <input type="number" step="0.01" name="toplam_bedel" class="form-control" placeholder="0.00" required>
-                                    <span class="input-group-text bg-light text-muted">₺</span>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Proje Sahibi (Müşteri Seçimi)</label>
+                        <select name="musteri_id" class="form-select" required>
+                            <option value="">Lütfen listeden bir müşteri seçin...</option>
+                            {# Sistemdeki mevcut müşterileri döngüyle select içerisine dolduruyoruz #}
+                            {% for m in musteriler %}
+                            <option value="{{ m['id'] }}">{{ m['ad_soyad'] }} (T.C.: {{ m['tc_no'] }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-                        <!-- 2. BÖLÜM: LOKASYON VE TAPU -->
-                        <div class="section-title fw-bold mt-3"><i class="fa-solid fa-map-location-dot me-2"></i>Lokasyon ve Tapu Bilgileri</div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small">İl</label>
-                                <select name="il" id="il-select" class="form-select" required>
-                                    <option value="">İl Seçin...</option>
-                                    {% for il in iller_listesi %}
-                                    <option value="{{ il }}">{{ il }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small">İlçe</label>
-                                <select name="ilce" id="ilce-select" class="form-select" disabled required>
-                                    <option value="">Önce İl Seçin...</option>
-                                </select>
-                            </div>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Proje Adı</label>
+                        <input type="text" name="proje_adi" class="form-control" placeholder="Örn: Kadıköy Villa Restorasyon Projesi" required>
+                    </div>
 
-                        <div class="row">
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-bold small">Mahalle</label>
-                                <input type="text" name="mahalle" class="form-control" placeholder="Mahalle adı" required>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-bold small">Ada</label>
-                                <input type="number" name="ada" class="form-control" placeholder="Ada No giriniz (Örn: 125)" min="0" required>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label fw-bold small">Parsel</label>
-                                <input type="number" name="parsel" class="form-control" placeholder="Parsel No giriniz (Örn: 14)" min="0" required>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Proje Tipi / Sektör</label>
+                            <input type="text" name="proje_tipi" class="form-control" placeholder="Örn: Konut, Ofis, Mimari Çizim" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Toplam Proje Bedeli / Bütçe (TL)</label>
+                            <div class="input-group">
+                                <input type="number" step="0.01" name="toplam_butce" class="form-control" placeholder="0.00" required>
+                                <span class="input-group-text fw-bold">TL</span>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- 3. BÖLÜM: TARİH VE ONAY -->
-                        <div class="section-title fw-bold mt-3"><i class="fa-solid fa-calendar-check me-2"></i>Teslim Tarihi</div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold small">Hedef Teslim Tarihi</label>
-                                <input type="date" name="teslim_tarihi" class="form-control" required>
-                            </div>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Tahmini Teslim Tarihi</label>
+                        <input type="date" name="teslim_tarihi" class="form-control" required>
+                    </div>
 
-                        <div class="mt-4">
-                            <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm fw-bold">
-                                <i class="fa-solid fa-save me-2"></i>Projeyi Kaydet ve Süreçleri Başlat
-                            </button>
+                    <h5 class="fw-bold text-secondary mb-3 mt-4 small text-uppercase border-bottom pb-2">
+                        <i class="fa-solid fa-map-location-dot me-2"></i>📍 Konum & Tapu Bilgileri
+                    </h5>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">İl</label>
+                            <select name="il" id="il-select" class="form-select" required>
+                                <option value="">İl Seçin...</option>
+                                {% for il in iller_listesi %}
+                                <option value="{{ il }}">{{ il }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
-                    </form>
-                </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">İlçe</label>
+                            <select name="ilce" id="ilce-select" class="form-select" required disabled>
+                                <option value="">Önce İl Seçiniz...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label small fw-bold">Mahalle / Köy</label>
+                            <input type="text" name="mahalle" class="form-control" placeholder="Örn: Merkez Mah.">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label small fw-bold">Ada No</label>
+                            <input type="number" name="ada" class="form-control" placeholder="Sayı giriniz Örn:10" min="1" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label small fw-bold">Parsel No</label>
+                            <input type="number" name="parsel" class="form-control" placeholder="Sayı giriniz Örn:2" min="1" required>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 border-top pt-3">
+                        <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm fw-bold text-white">
+                            <i class="fa-solid fa-save me-2"></i>Projeyi Kaydet ve Süreçleri Başlat
+                        </button>
+                    </div>
+
+                </form>
             </div>
         </div>
     </div>
+</div>
+{% endblock %}
 
-    <script>
+{# İl seçimine göre ilçeleri API üzerinden dinamik getiren JavaScript bloğu #}
+{% block extra_js %}
+<script>
         const ilSelect = document.getElementById('il-select');
         const ilceSelect = document.getElementById('ilce-select');
 
@@ -159,5 +136,4 @@
             }
         });
     </script>
-</body>
-</html>
+{% endblock %}

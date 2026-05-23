@@ -1,25 +1,117 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Mimar Takip{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --sidebar-width: 250px; --bg-dark: #2c3e50; }
-        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; background: var(--bg-dark); color: white; }
+        :root { --sidebar-width: 250px; --bg-dark: #2c3e50; --accent-color: #3498db; }
+        body { background-color: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        /* Sol Panel Tasarımı */
+        .sidebar { width: var(--sidebar-width); height: 100vh; background-color: var(--bg-dark); position: fixed; left: 0; top: 0; color: white; padding-top: 20px; z-index: 1000; }
+        .sidebar .logo-area { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 20px; }
+        .sidebar a { padding: 12px 25px; display: block; color: #bdc3c7; text-decoration: none; transition: 0.3s; font-size: 0.95rem; }
+        .sidebar a:hover { background-color: #34495e; color: white; border-left: 4px solid var(--accent-color); }
+        .sidebar a.active { background-color: #34495e; color: white; border-left: 4px solid var(--accent-color); }
+        
+        /* Profil Resmi Stili */
+        .sidebar-profile-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.1);
+            margin-bottom: 10px;
+            transition: 0.3s;
+        }
+        .sidebar-profile-img:hover {
+            border-color: var(--accent-color);
+            transform: scale(1.05);
+        }
+
+        /* Ana İçerik Alanı */
         .main-content { margin-left: var(--sidebar-width); padding: 30px; }
+        
+        /* Kart Tasarımları */
+        .card { border: none; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; }
+        .stat-card { color: white; position: relative; overflow: hidden; }
+        .stat-card:hover { transform: translateY(-5px); }
+        
+        /* İlerleme Çubuğu */
+        .progress { border-radius: 10px; background-color: #e9ecef; }
+        .progress-bar { border-radius: 10px; }
+
+        /* Acil Durum Kartı */
+        .urgent-card { 
+            border-left: 5px solid #e74c3c !important; 
+            background: linear-gradient(to right, #fff5f5, #ffffff);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 70px; }
+            .sidebar span, .sidebar h4, .sidebar small, .sidebar .sidebar-profile-img { display: none; }
+            .main-content { margin-left: 70px; }
+        }
     </style>
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <div class="sidebar">
+
+    <div class="sidebar shadow">
+        <div class="text-center logo-area px-2">
+            <h4 class="mb-3"><i class="fa-solid fa-compass-drafting"></i> Mimar Takip</h4>
+            
+            <div class="mb-2">
+                <img src="/static/uploads/profil/{{ session.get('profil_resmi', 'default.png') }}" 
+                     class="sidebar-profile-img shadow-sm" 
+                     alt="Profil">
+            </div>
+
+            <span class="badge bg-primary text-uppercase mb-1">{{ session['user_role'] }}</span><br>
+            <small class="fw-bold d-block text-white">{{ session['user_name'] }}</small>
+        </div>
         <nav>
-            <a href="/">Dashboard</a>
-            <a href="/projelerim">Projelerim</a>
+            <a href="/" class="{% if request.path == '/' %}active{% endif %}"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a>
+            <a href="/musteriler" class="{% if request.path == '/musteriler' %}active{% endif %}"><i class="fa-solid fa-address-book me-2"></i> Müşteri Yönetimi</a>
+            <a href="/proje_ekle" class="{% if request.path == '/proje_ekle' %}active{% endif %}"><i class="fa-solid fa-folder-plus me-2"></i> Yeni Proje Başlat</a>
+            <a href="/projelerim" class="{% if request.path == '/projelerim' %}active{% endif %}"><i class="fa-solid fa-diagram-project me-2"></i> Projelerim</a>
+            
+            {% if session['user_role'] == 'admin' %}
+            <hr class="mx-3 opacity-25">
+            <small class="px-4 text-uppercase fw-bold opacity-50" style="font-size: 0.7rem;">Sistem Yönetimi</small>
+            <a href="/kullanicilar" class="{% if request.path == '/kullanicilar' %}active{% endif %}"><i class="fa-solid fa-user-gear me-2"></i> Kullanıcı Yönetimi</a>
+            <a href="/ayarlar?tab=process" class="{% if 'tab=process' in request.full_path %}active{% endif %}"><i class="fa-solid fa-list-check me-2"></i> Aşama Ayarları</a>
+            {% endif %}
+        
+            <hr class="mx-3 opacity-25">
+            <a href="/ayarlar" class="{% if request.path == '/ayarlar' and 'tab=process' not in request.full_path %}active{% endif %}"><i class="fa-solid fa-gears me-2"></i> Ayarlar</a>
+            <a href="/logout" class="text-danger"><i class="fa-solid fa-right-from-bracket me-2"></i> Çıkış Yap</a>
         </nav>
     </div>
+
     <div class="main-content">
-        {% block content %}{% endblock %}
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm mb-4" role="alert">
+                <i class="fa-solid fa-circle-info me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        
+        {% block content %}
+        {% endblock %}
+
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

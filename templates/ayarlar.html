@@ -1,169 +1,143 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ayarlar - Mimar Takip</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root { --sidebar-width: 260px; --bg-dark: #2c3e50; --accent-color: #3498db; }
-        body { background-color: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
-        .sidebar { width: var(--sidebar-width); height: 100vh; background-color: var(--bg-dark); position: fixed; left: 0; top: 0; color: white; padding-top: 20px; z-index: 1000; }
-        .sidebar a { padding: 12px 25px; display: block; color: #bdc3c7; text-decoration: none; transition: 0.3s; }
-        .sidebar a:hover, .sidebar .active { background-color: #34495e; color: white; border-left: 4px solid var(--accent-color); }
-        .main-content { margin-left: var(--sidebar-width); padding: 40px; }
-        .card { border: none; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .nav-tabs .nav-link { color: #7f8c8d; font-weight: 600; border: none; padding: 15px 25px; }
-        .nav-tabs .nav-link.active { color: var(--accent-color); border-bottom: 3px solid var(--accent-color); background: none; }
-        .profile-img-container { position: relative; width: 150px; height: 150px; margin: 0 auto; }
-        .profile-img-preview { width: 150px; height: 150px; object-fit: cover; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    </style>
-</head>
-<body>
+{% extends 'base.html' %}
 
-    <div class="sidebar shadow">
-        <div class="text-center mb-4">
-            <h4><i class="fa-solid fa-compass-drafting"></i> Mimar Takip</h4>
-            <div class="mt-2">
-                <img src="/static/uploads/profil/{{ session.get('profil_resmi', 'default.png') }}" 
-                     class="rounded-circle border border-2 border-light shadow-sm mb-2" 
-                     style="width: 60px; height: 60px; object-fit: cover;">
-                <div class="small fw-bold text-white">{{ session.get('user_name') }}</div>
-            </div>
-            <small class="badge bg-primary mt-1">{{ session['user_role']|upper }}</small>
-        </div>
-        <nav>
-            <a href="/"><i class="fa-solid fa-chart-line me-2"></i> Dashboard</a>
-            <a href="/musteriler"><i class="fa-solid fa-address-book me-2"></i> Müşteri Yönetimi</a>
-            <a href="/proje_ekle"><i class="fa-solid fa-folder-plus me-2"></i> Yeni Proje Başlat</a>
-            <a href="/ayarlar" class="active"><i class="fa-solid fa-gears me-2"></i> Ayarlar</a>
-            <hr class="mx-3 opacity-25">
-            <a href="/logout" class="text-danger"><i class="fa-solid fa-right-from-bracket me-2"></i> Çıkış Yap</a>
-        </nav>
-    </div>
+{% block title %}Ayarlar - Mimar Takip{% endblock %}
 
-    <div class="main-content">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-              </div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
+{% block extra_css %}
+<style>
+    .nav-tabs .nav-link { color: #7f8c8d; font-weight: 600; border: none; padding: 15px 25px; }
+    .nav-tabs .nav-link.active { color: var(--accent-color); border-bottom: 3px solid var(--accent-color); background: none; }
+    .profile-img-container { position: relative; width: 150px; height: 150px; margin: 0 auto; }
+    .profile-img-preview { width: 150px; height: 150px; object-fit: cover; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+</style>
+{% endblock %}
 
-        <h3 class="fw-bold text-dark mb-4"><i class="fa-solid fa-gear me-2"></i>Sistem Ayarları</h3>
+{% block content %}
+<h3 class="fw-bold text-dark mb-4"><i class="fa-solid fa-gear me-2"></i>Sistem Ayarları</h3>
 
-        <div class="card shadow-sm">
-            <div class="card-body p-0">
-                <ul class="nav nav-tabs" id="settingsTab" role="tablist">
-                    <li class="nav-item">
-                        <button class="nav-link {{ 'active' if request.args.get('tab') != 'process' }}" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button">
-                            <i class="fa-solid fa-user-circle me-2"></i>Profilim
-                        </button>
-                    </li>
-                    {% if session['user_role'] == 'admin' %}
-                    <li class="nav-item">
-                        <button class="nav-link {{ 'active' if request.args.get('tab') == 'process' }}" id="process-tab" data-bs-toggle="tab" data-bs-target="#process" type="button">
-                            <i class="fa-solid fa-list-check me-2"></i>Proje Süreçleri
-                        </button>
-                    </li>
-                    {% endif %}
-                </ul>
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <ul class="nav nav-tabs" id="settingsTab" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link {{ 'active' if request.args.get('tab') != 'process' }}" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button">
+                    <i class="fa-solid fa-user-circle me-2"></i>Profilim
+                </button>
+            </li>
+            {% if session['user_role'] == 'admin' %}
+            <li class="nav-item">
+                <button class="nav-link {{ 'active' if request.args.get('tab') == 'process' }}" id="process-tab" data-bs-toggle="tab" data-bs-target="#process" type="button">
+                    <i class="fa-solid fa-list-check me-2"></i>Proje Süreçleri
+                </button>
+            </li>
+            {% endif %}
+        </ul>
 
-                <div class="tab-content p-4" id="settingsTabContent">
-                    
-                    <div class="tab-pane fade {{ 'show active' if request.args.get('tab') != 'process' }}" id="profile" role="tabpanel">
-                        <div class="row">
-                            <div class="col-md-4 text-center border-end">
-                                <h6 class="fw-bold mb-3 text-muted">Profil Fotoğrafı</h6>
-                                <div class="profile-img-container mb-3">
-                                    <img src="/static/uploads/profil/{{ session.get('profil_resmi', 'default.png') }}" 
-                                         class="profile-img-preview" id="preview">
+        <div class="tab-content p-4" id="settingsTabContent">
+            
+            <div class="tab-pane fade {{ 'show active' if request.args.get('tab') != 'process' }}" id="profile" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-4 text-center border-end">
+                        <h6 class="fw-bold mb-3 text-muted">Profil Fotoğrafı</h6>
+                        <div class="profile-img-container mb-3">
+                            <img src="/static/uploads/profil/{{ session.get('profil_resmi', 'default.png') }}" 
+                                 class="profile-img-preview" id="preview">
+                        </div>
+                        <form action="/profil_resmi_guncelle" method="POST" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <input type="file" name="foto" id="fotoInput" class="form-control form-control-sm" accept="image/*" required onchange="previewImage(this)">
+                            </div>
+                            <button type="submit" class="btn btn-dark btn-sm w-100 shadow-sm">Fotoğrafı Güncelle</button>
+                        </form>
+                    </div>
+
+                    <div class="col-md-8 ps-md-4">
+                        <h6 class="fw-bold mb-3 text-muted">Hesap Bilgileri</h6>
+                        <form action="/profil_guncelle" method="POST">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label small fw-bold">Ad Soyad</label>
+                                    <input type="text" name="ad_soyad" class="form-control" value="{{ session['user_name'] }}" required>
                                 </div>
-                                <form action="/profil_resmi_guncelle" method="POST" enctype="multipart/form-data">
-                                    <div class="mb-3">
-                                        <input type="file" name="foto" id="fotoInput" class="form-control form-control-sm" accept="image/*" required onchange="previewImage(this)">
-                                    </div>
-                                    <button type="submit" class="btn btn-dark btn-sm w-100 shadow-sm">Fotoğrafı Güncelle</button>
-                                </form>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label small fw-bold">Kullanıcı Rolü</label>
+                                    <input type="text" class="form-control bg-light" value="{{ session['user_role']|upper }}" readonly>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Mevcut Şifre</label>
+                                <input type="password" name="mevcut_sifre" class="form-control" placeholder="Şifrenizi değiştirmek için mevcut şifrenizi girin">
                             </div>
 
-                            <div class="col-md-8 ps-md-4">
-                                <h6 class="fw-bold mb-3 text-muted">Hesap Bilgileri</h6>
-                                <form action="/profil_guncelle" method="POST">
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label small fw-bold">Ad Soyad</label>
-                                            <input type="text" name="ad_soyad" class="form-control" value="{{ session['user_name'] }}" required>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label small fw-bold">Kullanıcı Rolü</label>
-                                            <input type="text" class="form-control bg-light" value="{{ session['user_role']|upper }}" readonly>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold">Yeni Şifre</label>
-                                        <input type="password" name="yeni_sifre" class="form-control" placeholder="Değiştirmek istemiyorsanız boş bırakın">
-                                    </div>
-                                    <button type="submit" class="btn btn-primary px-4 shadow-sm">Bilgileri Kaydet</button>
-                                </form>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Yeni Şifre</label>
+                                <input type="password" name="yeni_sifre" class="form-control" placeholder="Yeni şifrenizi girin">
                             </div>
-                        </div>
+                            <button type="submit" class="btn btn-primary px-4 shadow-sm text-white">Bilgileri Kaydet</button>
+                        </form>
                     </div>
-
-                    {% if session['user_role'] == 'admin' %}
-                    <div class="tab-pane fade {{ 'show active' if request.args.get('tab') == 'process' }}" id="process" role="tabpanel">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="fw-bold mb-0 text-muted">Varsayılan Proje Aşamaları</h5>
-                            <button class="btn btn-sm btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#addStepModal">
-                                <i class="fa-solid fa-plus me-1"></i> Yeni Aşama Ekle
-                            </button>
-                        </div>
-                        <div class="list-group shadow-sm">
-                            {% for asama in varsayilan_asamalar %}
-                            <div class="list-group-item d-flex justify-content-between align-items-center border-0 py-3 mb-2 bg-light rounded shadow-xs">
-                                <div><i class="fa-solid fa-bars me-3 text-muted small"></i><span class="fw-bold text-dark">{{ asama['asama_adi'] }}</span></div>
-                                <a href="/asama_varsayilan_sil/{{ asama['id'] }}" class="btn btn-sm btn-outline-danger border-0"><i class="fa-solid fa-trash"></i></a>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div class="modal fade" id="addStepModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content border-0 shadow">
-                <form action="/asama_varsayilan_ekle" method="POST">
-                    <div class="modal-header bg-success text-white">
-                        <h5 class="modal-title">Yeni Süreç Aşaması Ekle</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            {% if session['user_role'] == 'admin' %}
+            <div class="tab-pane fade {{ 'show active' if request.args.get('tab') == 'process' }}" id="process" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0 text-muted">Varsayılan Proje Aşamaları</h5>
+                    <button class="btn btn-sm btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#addStepModal">
+                        <i class="fa-solid fa-plus me-1"></i> Yeni Aşama Ekle
+                    </button>
+                </div>
+                <div class="list-group shadow-sm">
+                    {% for asama in varsayilan_asamalar %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center border-0 py-3 mb-2 bg-light rounded shadow-xs">
+                        <div>
+                            <i class="fa-solid fa-bars me-3 text-muted small"></i>
+                            <span class="fw-bold text-dark">{{ asama['asama_adi'] }}</span>
+                        </div>
+                        <a href="/asama_varsayilan_sil/{{ asama['id'] }}" class="btn btn-sm btn-outline-danger border-0">
+                            <i class="fa-solid fa-trash"></i>
+                        </a>
                     </div>
-                    <div class="modal-body"><div class="mb-3"><label class="form-label fw-bold">Aşama Adı</label><input type="text" name="asama_adi" class="form-control" required></div></div>
-                    <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Vazgeç</button><button type="submit" class="btn btn-success px-4">Sisteme Ekle</button></div>
-                </form>
+                    {% endfor %}
+                </div>
             </div>
+            {% endif %}
         </div>
     </div>
+</div>
 
-    <script>
-        function previewImage(input) {
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('preview').src = e.target.result;
-                }
-                reader.readAsDataURL(input.files[0]);
+<div class="modal fade" id="addStepModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <form action="/asama_varsayilan_ekle" method="POST">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Yeni Süreç Aşaması Ekle</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Aşama Adı</label>
+                        <input type="text" name="asama_adi" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn " data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-success px-4">Sisteme Ekle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('preview').src = e.target.result;
             }
+            reader.readAsDataURL(input.files[0]);
         }
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    }
+</script>
+{% endblock %}
